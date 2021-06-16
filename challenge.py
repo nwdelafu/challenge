@@ -2,35 +2,93 @@
 This python file contains the code necessary to complete the challenge.
 """
 import math
+import numpy as np
 
 
 def main():
     """
     Main function call for stdin and stdout.
     """
-    inputs = []
-    # # Save on that 'big O':
-    # running_mean = float()
-    # running_sd = float()
-    # running_median = float()
+    running = Stats()
+    # sd_bias_input = input("Bias or unbias SD calculation?")
 
     while True:
         user_input = input("Enter a number ('q' to quit): ")
         if user_input == "q":
             break
         try:
-            inputs.append(float(user_input))
+            running.push(float(user_input))
+
             print(f"""
-            Mean: {mean(inputs)}
-            Standard Deviation: {stdev(inputs)}
-            Median: {median(inputs)}
-            """)
+                Mean: {running.mean()}
+                Standard Deviation: {running.standard_deviation()}
+                Median: {running.median()}
+                """)
         except (ValueError, TypeError):
             return "Enter an int or float."
 
 
 # Could use statistics but we'll just code it ¯\_( ͡❛ ͜ʖ ͡❛)_/¯
+# This is using running statistics
+class Stats:
+    """
+    For continuous calculation of mean - saves time by not passing
+    in the list of values each time.
+
+    Saving that 'big O' using running calculations
+    """
+
+    def __init__(self):
+        self.n = 0
+        self.old_mean = 0
+        self.new_mean = 0
+        self.old_sd = 0
+        self.new_sd = 0
+        self.values = []
+
+    def clear(self):
+        self.n = 0
+
+    def push(self, x):
+        self.n += 1
+        self.values.append(x)
+
+        if self.n == 1:
+            self.old_mean = self.new_mean = x
+            self.old_sd = 0
+        else:
+            self.new_mean = self.old_mean + (x - self.old_mean) / self.n
+            self.new_sd = self.old_sd + \
+                (x - self.old_mean) * (x - self.new_mean)
+
+            self.old_mean = self.new_mean
+            self.old_sd = self.new_sd
+
+    def mean(self):
+        return self.new_mean if self.n else 0.0
+
+    def variance(self):
+        return self.new_sd / (self.n - 1) if self.n > 1 else 0.0
+
+    def standard_deviation(self):
+        return math.sqrt(self.variance())
+
+    def median(self):
+        sorted_data = sorted(self.values)
+        data_len = len(self.values)
+        index = (data_len - 1) // 2
+
+        if (data_len % 2):
+            return sorted_data[index]
+        else:
+            return (sorted_data[index] + sorted_data[index + 1]) / 2.0
+
+
+# This is not using running values
 def mean(data):
+    """
+    - data is array like
+    """
     return sum(data) / len(data)
 
 
