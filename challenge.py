@@ -2,7 +2,6 @@
 This python file contains the code necessary to complete the challenge.
 """
 import math
-import numpy as np
 
 
 def main():
@@ -13,19 +12,22 @@ def main():
     # sd_bias_input = input("Bias or unbias SD calculation?")
 
     while True:
-        user_input = input("Enter a number ('q' to quit): ")
+        user_input = input("Enter a number ('q' to quit): ").replace(" ", "")
         if user_input == "q":
             break
-        try:
-            running.push(float(user_input))
+        if user_input != "":
+            try:
+                running.push(float(user_input))
+                print(f"List of Inserted Values: {running.values}")
 
-            print(f"""
-                Mean: {running.mean()}
-                Standard Deviation: {running.standard_deviation()}
-                Median: {running.median()}
-                """)
-        except (ValueError, TypeError):
-            return "Enter an int or float."
+                print(f"""
+                    Mean: {running.mean()}
+                    Standard Deviation: {running.standard_deviation()}
+                    Median: {running.median()}
+                    """)
+            except (ValueError, TypeError) as e:
+                print("Please enter a valid integer or float.")
+                print(f"[ERROR] {e}" + "\n")
 
 
 # Could use statistics but we'll just code it ¯\_( ͡❛ ͜ʖ ͡❛)_/¯
@@ -39,6 +41,7 @@ class Stats:
     """
 
     def __init__(self):
+        """Running stats attributes with saved values"""
         self.n = 0
         self.old_mean = 0
         self.new_mean = 0
@@ -46,10 +49,8 @@ class Stats:
         self.new_sd = 0
         self.values = []
 
-    def clear(self):
-        self.n = 0
-
     def push(self, x):
+        """Adds number to values and updates old/new sd & mean"""
         self.n += 1
         self.values.append(x)
 
@@ -65,15 +66,31 @@ class Stats:
             self.old_sd = self.new_sd
 
     def mean(self):
+        """
+        Return self.new_mean value.
+
+        Accounts for non-existent list.
+        """
         return self.new_mean if self.n else 0.0
 
     def variance(self):
-        return self.new_sd / (self.n - 1) if self.n > 1 else 0.0
+        """
+        Calculates variance and return variance value.
+
+        Accounts for single value in list.
+        """
+        return self.new_sd / self.n if self.n > 1 else 0.0
 
     def standard_deviation(self):
+        """
+        Calculates standard deviation from variance.
+        """
         return math.sqrt(self.variance())
 
     def median(self):
+        """
+        Does not roll but utilizes stored values.
+        """
         sorted_data = sorted(self.values)
         data_len = len(self.values)
         index = (data_len - 1) // 2
